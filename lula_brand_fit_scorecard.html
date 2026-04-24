@@ -1,0 +1,175 @@
+
+<h2 class="sr-only">Brand fit scorecard for Lula Commerce outreach — ranked by operator autonomy, food hook, and delivery gap</h2>
+
+<style>
+  .score-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 2px; }
+  .tag { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 500; margin-right: 4px; }
+  .tag-go { background: #EAF3DE; color: #3B6D11; }
+  .tag-warn { background: #FAEEDA; color: #854F0B; }
+  .tag-no { background: #FCEBEB; color: #A32D2D; }
+  .tag-hook { background: #E1F5EE; color: #0F6E56; }
+  .row-rec { background: #EAF3DE; }
+  .row-warn { background: #FAEEDA; }
+  .row-no { background: #FCEBEB; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; padding: 8px 10px; font-size: 11px; font-weight: 500; color: var(--color-text-secondary); border-bottom: 0.5px solid var(--color-border-tertiary); text-transform: uppercase; letter-spacing: 0.04em; }
+  td { padding: 8px 10px; border-bottom: 0.5px solid var(--color-border-tertiary); color: var(--color-text-primary); vertical-align: top; }
+  .brand-name { font-weight: 500; font-size: 13px; }
+  .brand-sub { font-size: 11px; color: var(--color-text-secondary); margin-top: 1px; }
+  .stars { color: #639922; font-size: 13px; }
+  .filter-row { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  button.filter-btn { font-size: 12px; padding: 5px 14px; border-radius: 20px; border: 0.5px solid var(--color-border-secondary); background: var(--color-background-secondary); color: var(--color-text-secondary); cursor: pointer; }
+  button.filter-btn.active { background: #EAF3DE; color: #3B6D11; border-color: #97C459; font-weight: 500; }
+  .legend { display: flex; gap: 16px; margin-bottom: 12px; font-size: 12px; color: var(--color-text-secondary); flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 5px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 2px; }
+  .section-header td { font-size: 11px; font-weight: 500; color: var(--color-text-secondary); background: var(--color-background-tertiary); padding: 5px 10px; letter-spacing: 0.04em; text-transform: uppercase; }
+  .count-badge { font-size: 11px; background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: 20px; padding: 2px 8px; color: var(--color-text-secondary); margin-left: 8px; }
+  #result-count { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 10px; }
+</style>
+
+<div style="margin-bottom: 20px;">
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#97C459;"></div> Recommended — launch ready</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#EF9F27;"></div> Possible — verify first</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#E24B4A;"></div> Avoid — corporate controlled</div>
+  </div>
+  <div class="filter-row" id="filters">
+    <button class="filter-btn active" onclick="filterTable('all', this)">All brands</button>
+    <button class="filter-btn" onclick="filterTable('rec', this)">Recommended only</button>
+    <button class="filter-btn" onclick="filterTable('cstore', this)">C-store embedded food</button>
+    <button class="filter-btn" onclick="filterTable('fuel', this)">Fuel / dealer networks</button>
+    <button class="filter-btn" onclick="filterTable('qsr', this)">QSR standalone</button>
+  </div>
+  <div id="result-count"></div>
+</div>
+
+<table id="brandTable">
+  <thead>
+    <tr>
+      <th style="width:26%">Brand</th>
+      <th style="width:10%">Locations</th>
+      <th style="width:12%">Operator autonomy</th>
+      <th style="width:14%">Food hook for SimOne</th>
+      <th style="width:10%">Delivery gap</th>
+      <th style="width:14%">Verdict</th>
+      <th style="width:14%">Watch out</th>
+    </tr>
+  </thead>
+  <tbody id="tableBody"></tbody>
+</table>
+
+<script>
+const brands = [
+  { section: "C-store embedded food brands", cat: "cstore", name: "Chester's Chicken", sub: "C-store embedded — chicken", locs: "1,200+", autonomy: 5, hook: "Direct — Chester's IS the food program", gap: 5, verdict: "rec", note: "Hosts: Marathon, Sunoco, Gulf, Shell — perfect basket combo" },
+  { section: null, cat: "cstore", name: "Hot Stuff Kitchen", sub: "C-store embedded — pizza/multi", locs: "1,500+", autonomy: 5, hook: "Direct — food program already inside", gap: 5, verdict: "rec", note: "Zero corporate delivery. PFG-owned but 100% operator decision." },
+  { section: null, cat: "cstore", name: "Blimpie Express", sub: "C-store embedded — subs", locs: "~200", autonomy: 5, hook: "Direct — modular subs unit in c-store", gap: 5, verdict: "rec", note: "Small pool but zero competition, operators have nothing." },
+  { section: null, cat: "cstore", name: "Simple Simon's Pizza", sub: "C-store embedded — pizza", locs: "200+", autonomy: 5, hook: "Direct — pizza kiosk in store", gap: 5, verdict: "rec", note: "Midwest focus. Very limited digital. Easy yes." },
+  { section: null, cat: "cstore", name: "Noble Roman's Pizza", sub: "C-store embedded — pizza", locs: "100+", autonomy: 4, hook: "Direct — pizza program in c-store", gap: 4, verdict: "rec", note: "Some DoorDash already — still large gap. Majors Mgmt deal = organized targets." },
+  { section: null, cat: "cstore", name: "Sbarro Express", sub: "C-store embedded — pizza", locs: "800+", autonomy: 4, hook: "Direct — pizza in ARKO/EG stores", gap: 4, verdict: "rec", note: "C-store pivot is new = digital gap exists. Verify ARKO/EG operator model." },
+  { section: null, cat: "cstore", name: "Pizza Inn Express", sub: "C-store embedded — pizza kiosk", locs: "~250", autonomy: 5, hook: "Direct — pizza in c-store", gap: 5, verdict: "rec", note: "50-100 sq ft kiosk. Tiny but zero digital. Southern US." },
+  { section: null, cat: "cstore", name: "PFSbrands / Champs Chicken", sub: "C-store embedded — multi-concept", locs: "2,000+", autonomy: 3, hook: "Partial — chicken only, no surrounding retail", gap: 5, verdict: "warn", note: "Kiosk-only setup. No full c-store basket to upsell. Verify host store type first." },
+  { section: null, cat: "cstore", name: "Charleys Philly Steaks", sub: "C-store embedded — cheesesteaks", locs: "700+", autonomy: 3, hook: "Partial — c-store 'Cornerstone' model is new", gap: 3, verdict: "warn", note: "Mall heritage = corporate digital habits. C-store format still maturing." },
+  { section: null, cat: "cstore", name: "Godfather's Pizza Express", sub: "C-store embedded — pizza", locs: "~2,200", autonomy: 3, hook: "Partial — already has some delivery setup", gap: 2, verdict: "warn", note: "Corporate offers online ordering. Less of a gap — harder Lula pitch." },
+  { section: "Fuel brand dealer networks", cat: "fuel", name: "Valero", sub: "Fuel brand — 100% independent dealers", locs: "4,900+", autonomy: 5, hook: "Via KKC/Hunt Brothers inside — verify per location", gap: 5, verdict: "rec", note: "Valero owns ZERO retail. Every dealer is fully independent. Pure whitespace." },
+  { section: null, cat: "fuel", name: "Citgo", sub: "Fuel brand — 100% independent dealers", locs: "4,400+", autonomy: 5, hook: "Via Chester's/Hunt Brothers inside", gap: 5, verdict: "rec", note: "Champions independent retailer. Zero corporate digital." },
+  { section: null, cat: "fuel", name: "Gulf", sub: "Fuel brand — franchise/dealer", locs: "1,800+", autonomy: 5, hook: "Via Chester's/KKC inside — East Coast", gap: 5, verdict: "rec", note: "East Coast / Southeast. Low competition for their attention." },
+  { section: null, cat: "fuel", name: "Sinclair", sub: "Fuel brand — branded dealer", locs: "1,600+", autonomy: 5, hook: "Via Hunt Brothers inside — Mountain West", gap: 5, verdict: "rec", note: "HF Sinclair. Mountain West / Midwest. Underworked territory." },
+  { section: null, cat: "fuel", name: "Sunoco", sub: "Fuel brand — dealer + distributor", locs: "5,000+", autonomy: 4, hook: "Via Chester's/KKC inside", gap: 5, verdict: "rec", note: "~880 dealer + ~3,600 wholesale-supplied independents. Mixed autonomy — filter to direct dealers." },
+  { section: null, cat: "fuel", name: "Phillips 66 / Conoco / 76", sub: "Fuel brand — branded dealer (3 brands)", locs: "7,000+", autonomy: 5, hook: "Via Hunt Brothers/Chester's inside", gap: 5, verdict: "rec", note: "Three separate brands, same independent dealer model. Large pool." },
+  { section: null, cat: "fuel", name: "Marathon Dealers", sub: "Fuel brand — franchise/dealer", locs: "7,800+", autonomy: 5, hook: "Via Chester's inside (confirmed Jan 2025)", gap: 5, verdict: "rec", note: "Already confirmed Chester's + Marathon combos. Strong natural hook." },
+  { section: null, cat: "fuel", name: "ExxonMobil Dealers", sub: "Fuel brand — branded dealer", locs: "11,300+", autonomy: 4, hook: "Via KKC/Hunt Brothers — verify per location", gap: 5, verdict: "rec", note: "Massive pool. Some multi-site operators = gatekeeper risk. Filter to single-site." },
+  { section: null, cat: "fuel", name: "Shell Dealers", sub: "Fuel brand — branded dealer/licensee", locs: "12,500+", autonomy: 4, hook: "Via KKC inside (Shell confirmed as KKC host)", gap: 5, verdict: "rec", note: "Largest pool. Already confirmed KKC inside Shell. Strong hook exists. Filter by region." },
+  { section: null, cat: "fuel", name: "Chevron Dealers", sub: "Fuel brand — branded dealer", locs: "7,100+", autonomy: 4, hook: "Via KKC/Chester's inside", gap: 5, verdict: "warn", note: "ExtraMile JV handles c-store separately. Verify non-ExtraMile Chevron dealers." },
+  { section: null, cat: "fuel", name: "BP / Amoco Dealers", sub: "Fuel brand — dealer + corporate", locs: "7,000+", autonomy: 3, hook: "Via food programs inside — varies", gap: 4, verdict: "warn", note: "Owns ampm and Thorntons. Mixed autonomy — independent dealers OK, corporate sites no." },
+  { section: null, cat: "fuel", name: "ExtraMile (Chevron/Texaco)", sub: "C-store franchise", locs: "~1,174", autonomy: 5, hook: "Via KKC inside ExtraMile locations", gap: 5, verdict: "rec", note: "100% franchised. JV overlap with Jacksons — run address dedup vs your Jackson's list." },
+  { section: null, cat: "fuel", name: "ampm", sub: "C-store franchise (bp/Marathon)", locs: "~1,000+", autonomy: 5, hook: "Via KKC/Chester's inside", gap: 5, verdict: "rec", note: "West Coast / Southeast. Independent operators. Minimal delivery." },
+  { section: null, cat: "fuel", name: "ARCO", sub: "C-store franchise (Marathon)", locs: "~1,500+", autonomy: 5, hook: "Via food programs inside", gap: 5, verdict: "rec", note: "CA and Southwest. 100% independently operated. No corporate delivery." },
+  { section: "QSR standalone (lower priority)", cat: "qsr", name: "Lee's Famous Recipe", sub: "QSR — chicken", locs: "~130", autonomy: 5, hook: "Standalone QSR — food IS the product", gap: 5, verdict: "rec", note: "Regional OH/KY/IN. Minimal digital. Small operators. Easy yes but small pool." },
+  { section: null, cat: "qsr", name: "Golden Chick", sub: "QSR — chicken", locs: "~210", autonomy: 4, hook: "Standalone QSR — food IS the product", gap: 4, verdict: "rec", note: "Texas-focused. 95% franchised. Digital lagging. Small-operator friendly." },
+  { section: null, cat: "qsr", name: "Taco John's", sub: "QSR — Mexican", locs: "~370+", autonomy: 4, hook: "Standalone QSR — food IS the product", gap: 4, verdict: "rec", note: "Midwest/Plains small-town operators. Minimal digital penetration." },
+  { section: null, cat: "qsr", name: "Penn Station East Coast Subs", sub: "QSR — subs", locs: "~300+", autonomy: 4, hook: "Standalone QSR — food IS the product", gap: 4, verdict: "rec", note: "Many 1-5 unit operators. Classic small-business. Minimal corporate digital." },
+  { section: null, cat: "qsr", name: "Steak 'n Shake", sub: "QSR — burger/shakes", locs: "~300+", autonomy: 4, hook: "Standalone QSR — food IS the product", gap: 4, verdict: "rec", note: "$10K entry franchise. Transitioning from corporate. Digital weak." },
+  { section: null, cat: "qsr", name: "Huddle House", sub: "Family dining — diner/24hr", locs: "~300+", autonomy: 4, hook: "Standalone QSR — food IS the product", gap: 4, verdict: "rec", note: "24-hr diner, smaller/rural markets. Some 3PD but not standardized." },
+  { section: null, cat: "qsr", name: "Checkers / Rally's", sub: "QSR — burger value", locs: "~750", autonomy: 4, hook: "Standalone QSR — food IS the product", gap: 3, verdict: "warn", note: "Growing c-store presence but double drive-thru limits delivery appeal." },
+  { section: null, cat: "qsr", name: "Church's Texas Chicken", sub: "QSR — chicken", locs: "~800+", autonomy: 3, hook: "Standalone QSR — food IS the product", gap: 3, verdict: "warn", note: "Corporate-adjacent digital. Urban/underserved. Less operator-driven." },
+  { section: null, cat: "qsr", name: "Dairy Queen", sub: "QSR — ice cream/burger", locs: "4,500+", autonomy: 3, hook: "Standalone QSR — food IS the product", gap: 3, verdict: "warn", note: "Many rural family operators but Berkshire Hathaway = corporate pressure." },
+  { section: null, cat: "qsr", name: "7-Eleven / Speedway", sub: "C-store franchise", locs: "~13,000+", autonomy: 1, hook: "Has food inside but corporate controls delivery", gap: 1, verdict: "no", note: "7NOW app + DoorDash + UE + Instacart — all corporate mandated." },
+  { section: null, cat: "qsr", name: "Subway", sub: "QSR — subs", locs: "~16,200", autonomy: 1, hook: "N/A — corporate fully controls", gap: 1, verdict: "no", note: "100% franchised but digital 100% corporate. Do not call." },
+  { section: null, cat: "qsr", name: "Domino's", sub: "QSR — pizza", locs: "~7,000", autonomy: 1, hook: "N/A — corporate fully controls", gap: 1, verdict: "no", note: "Industry-leading corporate digital. Not a Lula target." },
+  { section: null, cat: "qsr", name: "Popeyes", sub: "QSR — chicken (RBI)", locs: "~5,000", autonomy: 1, hook: "N/A — corporate fully controls", gap: 1, verdict: "no", note: "RBI controls all 3PD. Corporate managed. Do not call." },
+  { section: null, cat: "qsr", name: "Wingstop", sub: "QSR — chicken/wings", locs: "~2,600", autonomy: 1, hook: "N/A — corporate fully controls", gap: 1, verdict: "no", note: "65% digital sales. Fully corporate. Do not call." },
+];
+
+function dots(n, max=5) {
+  let s = '';
+  for (let i=0;i<max;i++) s += `<span class="score-dot" style="background:${i<n?'#639922':'var(--color-border-tertiary)'}"></span>`;
+  return s;
+}
+
+function verdictTag(v) {
+  if (v==='rec') return '<span class="tag tag-go">Launch ready</span>';
+  if (v==='warn') return '<span class="tag tag-warn">Verify first</span>';
+  return '<span class="tag tag-no">Avoid</span>';
+}
+
+function rowClass(v) {
+  if (v==='rec') return '';
+  if (v==='warn') return '';
+  return 'row-no';
+}
+
+let currentFilter = 'all';
+
+function filterTable(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTable();
+}
+
+function renderTable() {
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = '';
+  let lastSection = null;
+  let count = 0;
+
+  brands.forEach(b => {
+    if (currentFilter === 'rec' && b.verdict !== 'rec') return;
+    if (currentFilter === 'cstore' && b.cat !== 'cstore') return;
+    if (currentFilter === 'fuel' && b.cat !== 'fuel') return;
+    if (currentFilter === 'qsr' && b.cat !== 'qsr') return;
+
+    if (b.section && b.section !== lastSection) {
+      const sr = document.createElement('tr');
+      sr.className = 'section-header';
+      sr.innerHTML = `<td colspan="7">${b.section}</td>`;
+      tbody.appendChild(sr);
+      lastSection = b.section;
+    }
+
+    const tr = document.createElement('tr');
+    const rowBg = b.verdict === 'no' ? 'background: #FCEBEB;' : b.verdict === 'warn' ? '' : '';
+    tr.style.cssText = rowBg;
+
+    tr.innerHTML = `
+      <td>
+        <div class="brand-name">${b.name}</div>
+        <div class="brand-sub">${b.sub}</div>
+      </td>
+      <td style="white-space:nowrap;">${b.locs}</td>
+      <td>${dots(b.autonomy)}</td>
+      <td style="font-size:12px; color:var(--color-text-secondary);">${b.hook}</td>
+      <td>${dots(b.gap)}</td>
+      <td>${verdictTag(b.verdict)}</td>
+      <td style="font-size:12px; color:var(--color-text-secondary);">${b.note}</td>
+    `;
+    tbody.appendChild(tr);
+    count++;
+  });
+
+  document.getElementById('result-count').textContent = `Showing ${count} brand${count!==1?'s':''}.`;
+}
+
+renderTable();
+</script>
